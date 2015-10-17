@@ -120,6 +120,5 @@ int main(int argc, char* argv[]) {
 		HookProcess(pid, options.hookedDllPath);
 	}
 
-	getchar();
 	return 0;
 }
