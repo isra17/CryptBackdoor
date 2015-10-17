@@ -9,13 +9,47 @@ bool gCryptHooked = false;
 typedef BOOL(WINAPI *CryptGenKeyPtr)(_In_  HCRYPTPROV, _In_  ALG_ID, _In_  DWORD, _Out_ HCRYPTKEY*);
 CryptGenKeyPtr SavedCryptGenKey = nullptr;
 
+
+struct PLAINTEXTKEYBLOB_t {
+	BLOBHEADER hdr;
+	DWORD      dwKeySize;
+	BYTE       rgbKeyData[];
+};
+
+BOOL GenWeakKey(DWORD keySize, ALG_ID algid, BYTE** blob, DWORD* blobSize) {
+	*blobSize = sizeof(PLAINTEXTKEYBLOB_t) + keySize;
+	PLAINTEXTKEYBLOB_t* keyBlob = (PLAINTEXTKEYBLOB_t*)malloc(*blobSize);
+	*blob = (BYTE*)keyBlob;
+	keyBlob->hdr.bType = PLAINTEXTKEYBLOB;
+	keyBlob->hdr.bVersion = CUR_BLOB_VERSION;
+	keyBlob->hdr.reserved = 0;
+	keyBlob->hdr.aiKeyAlg = algid;
+	keyBlob->dwKeySize = keySize;
+	memset(keyBlob->rgbKeyData, 0, keySize);
+
+	return TRUE;
+}
+
 BOOL WINAPI CryptGenKeyHook(
 	_In_  HCRYPTPROV hProv,
 	_In_  ALG_ID     Algid,
 	_In_  DWORD      dwFlags,
 	_Out_ HCRYPTKEY  *phKey) 
 {
-	puts("In CryptGenKeyHook");
+
+	puts("In CryptGenKeyHook...");
+
+	DWORD keySize = dwFlags >> 16;
+	if (keySize) {
+		BYTE* keyBlob;
+		DWORD keyBlobSize;
+		if (GenWeakKey(keySize, Algid, &keyBlob, &keyBlobSize)) {
+			printf("Generate weak key, size: %d, blob: %d", keySize, keyBlobSize);
+			return CryptImportKey(hProv, keyBlob, keyBlobSize, 0, 0, phKey);
+		}
+	}
+
+	puts("Using true CryptGenKey...");
 	return SavedCryptGenKey(hProv, Algid, dwFlags, phKey);
 }
 
