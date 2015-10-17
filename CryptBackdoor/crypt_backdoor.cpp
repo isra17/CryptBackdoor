@@ -46,11 +46,13 @@ BOOL WINAPI CryptGenKeyHook(
 		DWORD keyBlobSize;
 		if (GenWeakKey(keySize, Algid, &keyBlob, &keyBlobSize)) {
 			fprintf(log, "Generate weak key, size: %d, blob: %d\n", keySize, keyBlobSize);
+			fflush(log);
 			return CryptImportKey(hProv, keyBlob, keyBlobSize, 0, 0, phKey);
 		}
 	}
 
 	fputs("Using true CryptGenKey...", log);
+	fflush(log);
 	return SavedCryptGenKey(hProv, Algid, dwFlags, phKey);
 }
 
@@ -75,6 +77,7 @@ INT APIENTRY DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved) {
 	case DLL_PROCESS_ATTACH:
 		log = fopen("hook.log", "a");
 		fprintf(log, "Hello from injected dll [%x], reason %d\n", (unsigned int)hDLL, Reason);
+		fflush(log);
 		HookCrypt();
 		break;
 	case DLL_PROCESS_DETACH:
