@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CryptTest", "CryptTest\CryptTest.vcxproj", "{858F456F-9A2B-43AC-814D-E083C6A26250}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HookLoader", "HookLoader\HookLoader.vcxproj", "{1EB1C304-8AD4-47D2-94E6-DFF9B6F08888}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CryptBackdoor", "CryptBackdoor\CryptBackdoor.vcxproj", "{971313EC-B76F-465C-B28C-7B6A9260F59A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{858F456F-9A2B-43AC-814D-E083C6A26250}.Debug|x64.ActiveCfg = Debug|x64
+		{858F456F-9A2B-43AC-814D-E083C6A26250}.Debug|x64.Build.0 = Debug|x64
+		{858F456F-9A2B-43AC-814D-E083C6A26250}.Debug|x86.ActiveCfg = Debug|Win32
+		{858F456F-9A2B-43AC-814D-E083C6A26250}.Debug|x86.Build.0 = Debug|Win32
+		{858F456F-9A2B-43AC-814D-E083C6A26250}.Release|x64.ActiveCfg = Release|x64
+		{858F456F-9A2B-43AC-814D-E083C6A26250}.Release|x64.Build.0 = Release|x64
+		{858F456F-9A2B-43AC-814D-E083C6A26250}.Release|x86.ActiveCfg = Release|Win32
+		{858F456F-9A2B-43AC-814D-E083C6A26250}.Release|x86.Build.0 = Release|Win32
+		{1EB1C304-8AD4-47D2-94E6-DFF9B6F08888}.Debug|x64.ActiveCfg = Debug|x64
+		{1EB1C304-8AD4-47D2-94E6-DFF9B6F08888}.Debug|x64.Build.0 = Debug|x64
+		{1EB1C304-8AD4-47D2-94E6-DFF9B6F08888}.Debug|x86.ActiveCfg = Debug|Win32
+		{1EB1C304-8AD4-47D2-94E6-DFF9B6F08888}.Debug|x86.Build.0 = Debug|Win32
+		{1EB1C304-8AD4-47D2-94E6-DFF9B6F08888}.Release|x64.ActiveCfg = Release|x64
+		{1EB1C304-8AD4-47D2-94E6-DFF9B6F08888}.Release|x64.Build.0 = Release|x64
+		{1EB1C304-8AD4-47D2-94E6-DFF9B6F08888}.Release|x86.ActiveCfg = Release|Win32
+		{1EB1C304-8AD4-47D2-94E6-DFF9B6F08888}.Release|x86.Build.0 = Release|Win32
+		{971313EC-B76F-465C-B28C-7B6A9260F59A}.Debug|x64.ActiveCfg = Debug|x64
+		{971313EC-B76F-465C-B28C-7B6A9260F59A}.Debug|x64.Build.0 = Debug|x64
+		{971313EC-B76F-465C-B28C-7B6A9260F59A}.Debug|x86.ActiveCfg = Debug|Win32
+		{971313EC-B76F-465C-B28C-7B6A9260F59A}.Debug|x86.Build.0 = Debug|Win32
+		{971313EC-B76F-465C-B28C-7B6A9260F59A}.Release|x64.ActiveCfg = Release|x64
+		{971313EC-B76F-465C-B28C-7B6A9260F59A}.Release|x64.Build.0 = Release|x64
+		{971313EC-B76F-465C-B28C-7B6A9260F59A}.Release|x86.ActiveCfg = Release|Win32
+		{971313EC-B76F-465C-B28C-7B6A9260F59A}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
