@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <Windows.h>
+#include <windows.h>
 #include <wincrypt.h>
 
 void PrintHex(char* data, int size) {

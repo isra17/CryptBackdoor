@@ -2,92 +2,97 @@
 #include <vector>
 #include <string>
 #include <codecvt>
-#include <filesystem>
+#include <locale>
+#include <cassert>
 
 #include <windows.h>
-#include <Tlhelp32.h>
+#include <tlhelp32.h>
 
 using namespace std;
-namespace filesystem = std::experimental::filesystem;
 
-const string kUsage = "Usage: HookLoader [-p pid] [-n name] [pids...] hooked_dll";
-
-wstring utf8towcs(const string& utf8) {
-	std::wstring_convert<codecvt<wchar_t, char, mbstate_t>> converter;
-	return converter.from_bytes(utf8);
-}
+const wchar_t kUsage[] = L"Usage: HookLoader [-p pid] [-n name] [pids...] hooked_dll";
 
 vector<int> FindProcessesPid(const wstring& processName) {
 	vector<int> pids;
 	PROCESSENTRY32 pe32;
 	pe32.dwSize = sizeof(PROCESSENTRY32);
-	HANDLE hTool32 = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+	HANDLE hTool32 = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	BOOL bProcess = Process32First(hTool32, &pe32);
 	if (bProcess == TRUE)
 	{
-		while ((Process32Next(hTool32, &pe32)) == TRUE)
+		while ((Process32Next(hTool32, &pe32)) == TRUE) {
 			if (processName == pe32.szExeFile) {
 				pids.push_back(pe32.th32ProcessID);
 			}
+    }
 	}
 	CloseHandle(hTool32);
 
 	return pids;
 }
 
-bool IsFlag(const string& opt) {
-	return opt[0] == '-';
+bool IsFlag(const wstring& opt) {
+	return opt[0] == L'-';
+}
+
+bool FileExists(const wstring& path) {
+  if (FILE *file = _wfopen(path.c_str(), L"r")) {
+    fclose(file);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 struct Options {
 	vector<int> pids;
-	filesystem::path hookedDllPath;
+  std::wstring hookedDllPath;
 
-	static Options Parse(int argc, char** argv) {
+	static Options Parse(int argc, wchar_t** argv) {
 		Options options;
 		if (argc < 4) {
-			cerr << kUsage << endl;
+			wcerr << kUsage << endl;
 			exit(1);
 		}
 
-		options.hookedDllPath = filesystem::system_complete(utf8towcs(argv[argc - 1]));
-		if (!filesystem::exists(options.hookedDllPath)) {
-			cerr << "Hooked dll '" << options.hookedDllPath << "' does not exist" << endl;
+		options.hookedDllPath = argv[argc - 1];
+		if (!FileExists(options.hookedDllPath)) {
+			wcerr << "Hooked dll '" << options.hookedDllPath << "' does not exist" << endl;
 			exit(1);
 		}
 		argv[argc - 1] = 0;
 
-		char** parg = argv + 1;
+		wchar_t** parg = argv + 1;
 
 		while (*parg) {
-			char* arg = parg[0];
+			wchar_t* arg = parg[0];
 			if (IsFlag(arg)) {
 				if (!parg[0]) {
-					cerr << "Expecting value for option '" << arg << "'" << endl;
-					cerr << kUsage << endl;
+					wcerr << "Expecting value for option '" << arg << "'" << endl;
+					wcerr << kUsage << endl;
 					exit(1);
 				}
 
 				switch (arg[1]) {
-				case 'p':
-					options.pids.push_back(atoi(parg[1]));
+				case L'p':
+					options.pids.push_back(_wtoi(parg[1]));
 					break;
-				case 'n':
+				case L'n':
 				{
-					vector<int> pids = FindProcessesPid(utf8towcs(parg[1]));
+					vector<int> pids = FindProcessesPid(parg[1]);
 					options.pids.insert(options.pids.end(), pids.begin(), pids.end());
 				}
 					break;
 				default:
-					cerr << "Unknown option '" << arg << "'" << endl;
-					cerr << kUsage << endl;
+					wcerr << "Unknown option '" << arg << "'" << endl;
+					wcerr << kUsage << endl;
 					exit(1);
 				}
 
 				parg += 2;
 			}
 			else {
-				options.pids.push_back(atoi(arg));
+				options.pids.push_back(_wtoi(arg));
 				parg += 1;
 			}
 		}
@@ -101,9 +106,15 @@ void HookProcess(int pid, const wstring& hookedDllPath) {
 	HANDLE hProcess = OpenProcess(
 		PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_WRITE |
 		PROCESS_QUERY_INFORMATION | PROCESS_VM_READ , false, pid);
-	LPVOID pLoadLibraryW = GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryW");
-	DWORD pathSize = (hookedDllPath.length() + 1) * 2;
+  assert(hProcess);
+
+	LPVOID pLoadLibraryW = (LPVOID)GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryW");
+  assert(pLoadLibraryW);
+
+	DWORD pathSize = (hookedDllPath.length() * 2 + 1);
 	LPVOID lpParam = (LPVOID)VirtualAllocEx(hProcess, NULL, pathSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+  assert(lpParam);
+
 	if (!WriteProcessMemory(hProcess, lpParam, hookedDllPath.c_str(), pathSize, NULL)) {
 		perror("WriteProcessMemory");
 	}
@@ -113,7 +124,9 @@ void HookProcess(int pid, const wstring& hookedDllPath) {
 	CloseHandle(hProcess);
 }
 
-int main(int argc, char* argv[]) {
+extern "C" {
+
+int wmain(int argc, wchar_t* argv[]) {
 	Options options = Options::Parse(argc, argv);
 
 	for (int pid : options.pids) {
@@ -122,3 +135,5 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
+
+} // extern "C"

@@ -35,7 +35,7 @@ BOOL WINAPI CryptGenKeyHook(
 	_In_  HCRYPTPROV hProv,
 	_In_  ALG_ID     Algid,
 	_In_  DWORD      dwFlags,
-	_Out_ HCRYPTKEY  *phKey) 
+	_Out_ HCRYPTKEY  *phKey)
 {
 
 	fputs("In CryptGenKeyHook...", log);
@@ -61,7 +61,7 @@ void HookCrypt() {
 	SavedCryptGenKey = (CryptGenKeyPtr)GetProcAddress(hAdvapi32, "CryptGenKey");
 	assert(SavedCryptGenKey);
 
-	Mhook_SetHook((PVOID*)&SavedCryptGenKey, CryptGenKeyHook);
+	Mhook_SetHook((PVOID*)&SavedCryptGenKey, (PVOID)CryptGenKeyHook);
 
 	gCryptHooked = true;
 }

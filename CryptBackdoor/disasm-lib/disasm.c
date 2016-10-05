@@ -37,7 +37,7 @@ typedef struct _DISASM_ARG_INFO
 //////////////////////////////////////////////////////////////////////
 
 BOOL InitInstruction(INSTRUCTION *Instruction, DISASSEMBLER *Disassembler);
-struct _ARCHITECTURE_FORMAT *GetArchitectureFormat(ARCHITECTURE_TYPE Type);
+static struct _ARCHITECTURE_FORMAT *GetArchitectureFormat(ARCHITECTURE_TYPE Type);
 
 //////////////////////////////////////////////////////////////////////
 // Disassembler setup
@@ -49,7 +49,7 @@ BOOL InitDisassembler(DISASSEMBLER *Disassembler, ARCHITECTURE_TYPE Architecture
 
 	memset(Disassembler, 0, sizeof(DISASSEMBLER));
 	Disassembler->Initialized = DISASSEMBLER_INITIALIZED;
-	
+
 	ArchFormat = GetArchitectureFormat(Architecture);
 	if (!ArchFormat) { assert(0); return FALSE; }
 	Disassembler->ArchType = ArchFormat->Type;
@@ -89,7 +89,7 @@ INSTRUCTION *GetInstruction(DISASSEMBLER *Disassembler, U64 VirtualAddress, U8 *
 	if (Disassembler->Initialized != DISASSEMBLER_INITIALIZED) { assert(0); return NULL; }
 	assert(Address);
 	InitInstruction(&Disassembler->Instruction, Disassembler);
-	Disassembler->Instruction.Address = Address;	
+	Disassembler->Instruction.Address = Address;
 	Disassembler->Instruction.VirtualAddressDelta = VirtualAddress - (U64)Address;
 	if (!Disassembler->Functions->GetInstruction(&Disassembler->Instruction, Address, Flags))
 	{
