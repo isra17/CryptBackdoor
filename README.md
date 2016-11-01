@@ -1,5 +1,5 @@
 # CryptBackdoor
-This project inject a DLL in a running process (Using PID or process name) to hook and 
+This project injects a DLL in a running process (Using PID or process name) to hook and 
 intercept call to `CryptGenKey`. If possible, a null key is imported instead of an 
 unknown random key. The hook is really simple and might not work for every case.
 
